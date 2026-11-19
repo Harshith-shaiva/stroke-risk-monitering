@@ -1,0 +1,31 @@
+# docker-compose.yml
+# Local development stack for the Stroke Risk Monitoring API.
+# Usage:
+#   docker compose up --build
+#
+# Set WATSONX_API_KEY in a .env file (see .env.example) before running.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: stroke-risk-api:latest
+    container_name: stroke-risk-api
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: development
+      PORT: "5000"
+      WATSONX_URL: ${WATSONX_URL:-https://us-south.ml.cloud.ibm.com}
+      WATSONX_PROJECT_ID: ${WATSONX_PROJECT_ID:-746c612f-47a6-4d52-96df-87c9aa25f468}
+      WATSONX_API_KEY: ${WATSONX_API_KEY}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
